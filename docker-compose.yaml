@@ -1,0 +1,36 @@
+version: "3.6"
+
+services:
+  h5p-microservice:
+    build: .
+    environment:
+      MOODLE_URL: http://localhost
+      # The fetch URL is used for direct access from the microservice to Moodle
+      # It can't be localhost, as this is the service host's localhost
+      MOODLE_URL_FETCH: http://moodle
+      MICROSERVICE_URL: http://localhost/h5p-shared-state
+      MOODLE_DB_HOST: db
+      MOODLE_DB_USER: moodle
+      MOODLE_DB_PASSWORD: m@0dl3ing
+      MOODLE_DB_NAME: moodle
+      PORT: 80
+    labels:
+      - "traefik.enable=true"      
+      - "traefik.http.routers.h5p.rule=Host(`localhost`) && PathPrefix(`/h5p-shared-state`)"
+      - "traefik.http.routers.h5p.entrypoints=web"
+      - "traefik.http.middlewares.h5p.stripprefix.prefixes=/h5p-shared-state"
+      - "traefik.http.routers.h5p.middlewares=h5p"
+
+  traefik:
+    image: "traefik:v2.6"
+    container_name: "traefik"
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"

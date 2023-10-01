@@ -1,0 +1,50 @@
+version: 2.1
+commands:
+  # Set up qemu for multi-arch build
+  setup:
+    steps:
+      - run:
+          name: Setup buildx and qemu
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y qemu-user-static
+            sudo apt-get install -y binfmt-support
+      - run:
+          name: Check versions
+          command: |
+            qemu-aarch64-static --version
+            update-binfmts --version
+      - run:
+          name: Create builder
+          command: |
+            export DOCKER_CLI_EXPERIMENTAL=enabled
+            docker buildx create --name arm-builder
+            docker buildx use arm-builder
+            docker buildx inspect --bootstrap
+jobs:
+  test:
+    machine:
+      image: ubuntu-2004:current
+    steps:
+      - checkout
+      - run: npm ci
+      - run: npm run build
+  build:
+    machine:
+      image: ubuntu-2004:current
+    steps:
+      - checkout
+      - setup
+      # start proprietary DB using private Docker image with credentials stored
+      # in the UI
+      - run: echo "$DOCKER_PASS" | docker login --username $DOCKER_USER --password-stdin
+      # build the application image
+      - run: DOCKER_CLI_EXPERIMENTAL=enabled docker buildx build --platform linux/arm64,linux/amd64 --push -t sr258/wp-h5p-shared-state:$CIRCLE_BRANCH .
+workflows:
+  version: 2
+  test-build:
+    jobs:
+      - test
+      - build:
+          requires:
+            - test
