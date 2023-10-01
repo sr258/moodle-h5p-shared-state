@@ -17,7 +17,6 @@ const log = debug("wp-microservice");
 
 let db: MoodleMySqlDB;
 let settings: Settings;
-let sharedStateServer: SharedStateServer;
 
 const main = async (): Promise<void> => {
   // Get settings (from environment variables or .env file. See example.env what
@@ -56,7 +55,7 @@ const main = async (): Promise<void> => {
   const server = http.createServer(app);
 
   // Add shared state websocket and ShareDB to the server
-  sharedStateServer = new SharedStateServer(
+  const sharedStateServer = new SharedStateServer(
     server,
     h5pRepository.getLibraryMetadata(settings),
     h5pRepository.getLibraryFileAsJson(settings),
@@ -96,7 +95,7 @@ const main = async (): Promise<void> => {
       try {
         decodedToken = jwt.verify(token, "sec!ReT423*&") as any;
       } catch {
-        log('Failed token verification');
+        log("Failed token verification");
         return undefined as any;
       }
 
@@ -113,16 +112,13 @@ const main = async (): Promise<void> => {
 
       return {
         type: "local",
-        canCreateRestricted: false,
-        canInstallRecommended: false,
-        canUpdateAndInstallLibraries: false,
         name: decodedToken.dn,
         email: decodedToken.em ?? "",
         id: decodedToken.uid,
         level: decodedToken.level,
       };
     },
-    async (user, contentId) => {
+    async (user) => {
       return (user as any).level;
     },
     db.getContentMetadata,
