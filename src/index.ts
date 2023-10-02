@@ -13,6 +13,7 @@ import Settings from "./Settings";
 import MoodleMySqlDB from "./MoodleMySqlDB";
 import * as h5pRepository from "./h5pRepository";
 import { requireBearerToken } from "./tokenAuth";
+import { ISharedStateJwt } from "./types";
 
 const log = debug("wp-microservice");
 
@@ -39,17 +40,16 @@ const main = async (): Promise<void> => {
 
   app.use(morgan("dev"));
 
-  app.use(bodyParser.json({ limit: "500mb" }));
+  app.use(bodyParser.json({ limit: "1mb" }));
   app.use(
     bodyParser.urlencoded({
       extended: true,
     })
   );
 
-  // We need CORS for the HTTP XHR request sent to /auth-data/:contentId. We
-  // only allow requests originating from the Moodle site and also allow the
+  // We only allow requests originating from the Moodle site and also allow the
   // cookie.
-  app.use(cors({ origin: settings.moodleUrl, credentials: true }));
+  app.use(cors({ origin: settings.moodleUrl }));
 
   // We need to create our own http server to pass it to the shared state
   // package.
@@ -67,8 +67,6 @@ const main = async (): Promise<void> => {
       const u = url.parse(req.url);
       const parsedQuery = querystring.decode(u.query ?? "");
 
-      console.log(parsedQuery);
-
       if (!parsedQuery.token || typeof parsedQuery.token !== "string") {
         throw new Error(
           "Unauthenticated user tried to connect to Websocket endpoint"
@@ -77,27 +75,11 @@ const main = async (): Promise<void> => {
 
       const token = parsedQuery.token;
 
-      let decodedToken: {
-        iat: number;
-        uid: string;
-        exp: number;
-        iss: string;
-        h5pcid: number;
-        level: "privileged" | "user";
-        /**
-         * Display Name
-         */
-        dn: string;
-        /*
-         * E-Mail
-         */
-        em?: string;
-      };
+      let decodedToken: ISharedStateJwt;
       try {
         decodedToken = jwt.verify(token, settings.jwtSecret) as any;
       } catch {
-        log("Failed token verification");
-        return undefined as any;
+        throw new Error("Failed token verification");
       }
 
       if (
