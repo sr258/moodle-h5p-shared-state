@@ -12,6 +12,7 @@ import url from "node:url";
 import Settings from "./Settings";
 import MoodleMySqlDB from "./MoodleMySqlDB";
 import * as h5pRepository from "./h5pRepository";
+import { requireBearerToken } from "./tokenAuth";
 
 const log = debug("wp-microservice");
 
@@ -123,6 +124,23 @@ const main = async (): Promise<void> => {
     },
     db.getContentMetadata,
     db.getContentParameters
+  );
+
+  app.delete(
+    "/shared-state/:contentId",
+    requireBearerToken(settings.restAuthToken),
+    async (req: express.Request<{ contentId: string }>, res) => {
+      try {
+        console.log(
+          "Deleting shared state for contentId",
+          req.params.contentId
+        );
+        await sharedStateServer.deleteState(req.params.contentId);
+      } catch {
+        res.status(404).send();
+      }
+      res.status(204).send();
+    }
   );
 
   process.on("uncaughtException", (error) => {

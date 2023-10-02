@@ -22,6 +22,7 @@ export default class Settings {
   public tablePrefix: string = "m_";
   public port: number = 3000;
   public jwtSecret: string = "";
+  public restAuthToken: string = "";
 
   /**
    * Factory method that loads the settings from the environment variables and
@@ -67,6 +68,7 @@ export default class Settings {
     this.dbPassword = process.env.MOODLE_DB_PASSWORD as string;
     this.dbName = process.env.MOODLE_DB_NAME as string;
     this.jwtSecret = process.env.JWT_SECRET as string;
+    this.restAuthToken = process.env.REST_AUTH_TOKEN as string;
     if (process.env.MOODLE_DB_PORT) {
       this.dbPort = Number.parseInt(process.env.MOODLE_DB_PORT);
     }
@@ -114,6 +116,10 @@ export default class Settings {
     }
     if (!process.env.JWT_SECRET) {
       console.error("JWT_SECRET must be set for the microservice to run.");
+      err = true;
+    }
+    if (!process.env.REST_AUTH_TOKEN) {
+      console.error("REST_AUTH_TOKEN must be set for the microservice to run.");
       err = true;
     }
     if (

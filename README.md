@@ -16,6 +16,8 @@ content types to have a shared state.
   (change the hostnames according to your setup):
 
   ```php
+  $CFG->mod_hvp_shared_state_rest_auth_token = 'b9SykNqTi7Ye4UGupgz5ZSJGVee2srNJRmz2HM9BDetENxuqHDWP9Bz55Ur6SPzx';
+  $CFG->mod_hvp_shared_state_jwt_secret = 'sec!ReT423*&';
   $CFG->mod_hvp_library_config = [
     'H5P.ShareDBTest' => [
         'serverUrl' => 'ws://localhost:3000/shared-state',
