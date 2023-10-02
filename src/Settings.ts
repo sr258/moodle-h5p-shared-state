@@ -21,6 +21,7 @@ export default class Settings {
   public dbPort: number = 3306;
   public tablePrefix: string = "m_";
   public port: number = 3000;
+  public jwtSecret: string = "";
 
   /**
    * Factory method that loads the settings from the environment variables and
@@ -65,6 +66,7 @@ export default class Settings {
     this.dbUser = process.env.MOODLE_DB_USER as string;
     this.dbPassword = process.env.MOODLE_DB_PASSWORD as string;
     this.dbName = process.env.MOODLE_DB_NAME as string;
+    this.jwtSecret = process.env.JWT_SECRET as string;
     if (process.env.MOODLE_DB_PORT) {
       this.dbPort = Number.parseInt(process.env.MOODLE_DB_PORT);
     }
@@ -93,15 +95,11 @@ export default class Settings {
       err = true;
     }
     if (!process.env.MOODLE_DB_HOST) {
-      console.error(
-        "MOODLE_DB_HOST must be set for the microservice to run."
-      );
+      console.error("MOODLE_DB_HOST must be set for the microservice to run.");
       err = true;
     }
     if (!process.env.MOODLE_DB_USER) {
-      console.error(
-        "MOODLE_DB_USER must be set for the microservice to run."
-      );
+      console.error("MOODLE_DB_USER must be set for the microservice to run.");
       err = true;
     }
     if (!process.env.MOODLE_DB_PASSWORD) {
@@ -111,9 +109,11 @@ export default class Settings {
       err = true;
     }
     if (!process.env.MOODLE_DB_NAME) {
-      console.error(
-        "MOODLE_DB_NAME must be set for the microservice to run."
-      );
+      console.error("MOODLE_DB_NAME must be set for the microservice to run.");
+      err = true;
+    }
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET must be set for the microservice to run.");
       err = true;
     }
     if (

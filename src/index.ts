@@ -93,7 +93,7 @@ const main = async (): Promise<void> => {
         em?: string;
       };
       try {
-        decodedToken = jwt.verify(token, "sec!ReT423*&") as any;
+        decodedToken = jwt.verify(token, settings.jwtSecret) as any;
       } catch {
         log("Failed token verification");
         return undefined as any;
